@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 
-import {getAllTodos } from './Api/todos';
+import {getAllTodos, createNewTodoList, createAndDeleteTodo } from './Api/todos';
 
 class App extends React.Component {
 
@@ -16,11 +16,16 @@ class App extends React.Component {
   }
 
   componentWillMount(){
+
       getAllTodos()
       .then( res => {
-        console.log(res);
+        return res.json();
       })
-      .catch( err => {
+      .then( data => {
+        console.log(data)
+        this.setState({todos:data})
+      })
+      .catch( err => {
         console.log(err)
       })
   }
@@ -28,14 +33,39 @@ class App extends React.Component {
   handelKeyDownEvent(e){
     
     if(e.keyCode === 13){
-      this.setState({todos:[...this.state.todos, e.target.value]})
+      const todos = this.state.todos;
+      todos.push({label:e.target.value, done:false});
+
+      createAndDeleteTodo(todos)
+      .then( res => {
+        this.setState({todos:todos})
+        return res.json()
+      })
+      .then( data => {
+        console.log(data)
+      })
+      .catch( err => {
+        console.log(err)
+      })
     }
   }
 
   handelClick(index){
     const todos = this.state.todos;
     todos.splice(index, 1);
-    this.setState({todos:todos})
+    createAndDeleteTodo(todos)
+      .then( res => {
+        this.setState({todos:todos})
+        return res.json()
+      })
+      .then( data => {
+        console.log(data)
+        this.setState({todos:todos})
+      })
+      .catch( err => {
+        console.log(err)
+      })
+    
   }
 
   render(){
@@ -49,7 +79,7 @@ class App extends React.Component {
                       <ul>
                         {this.state.todos.length > 0 ? 
                           this.state.todos.map( (todo, index) => {
-                            return <li key={index}> <p>{todo}</p> <p className="hiden"><i onClick={() => this.handelClick(index)} className="fas fa-times"></i></p></li>
+                            return <li key={index}> <p>{todo.label}</p> <p className="hiden"><i onClick={() => this.handelClick(index)} className="fas fa-times"></i></p></li>
                           })
                           :
                           <li> <p>Without tasks, add a task</p> </li>
